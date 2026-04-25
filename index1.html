@@ -1,1 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的私人酒吧</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #161619;
+    --bg3: #1e1e23;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.14);
+    --gold: #c9a84c;
+    --gold2: #e8c97a;
+    --text: #e8e4dc;
+    --text2: #9a9590;
+    --text3: #5c5852;
+    --accent: #4a3728;
+    --red: #8b2d2d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
 
+  /* ── Noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── Layout ── */
+  .shell { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* ── Header ── */
+  header {
+    padding: 3rem 0 2rem;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .brand h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .brand h1 em { font-style: italic; color: var(--gold); }
+  .brand p { font-size: 13px; color: var(--text3); margin-top: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .header-count { text-align: right; }
+  .count-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); display: block; }
+  .count-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 0; margin-bottom: 2.5rem; border: 0.5px solid var(--border2); border-radius: 6px; overflow: hidden; }
+  .tab {
+    flex: 1; padding: 0.75rem 1rem; background: transparent; color: var(--text2);
+    border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.2s;
+    border-right: 0.5px solid var(--border2);
+    text-align: center;
+  }
+  .tab:last-child { border-right: none; }
+  .tab:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .tab.active { background: var(--gold); color: #0d0d0f; font-weight: 500; }
+
+  /* ── Section ── */
+  section { display: none; }
+  section.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  /* ── Inventory ── */
+  .inv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .inv-header h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.3rem; }
+  .add-form { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+  .add-form input, .add-form select {
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: 6px; padding: 0.6rem 0.9rem; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .add-form input:focus, .add-form select:focus { border-color: var(--gold); }
+  .add-form input { flex: 1; }
+  .add-form select { min-width: 130px; }
+  .add-form select option { background: var(--bg3); }
+  .btn {
+    padding: 0.6rem 1.2rem; border-radius: 6px; border: 0.5px solid var(--border2);
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    transition: all 0.18s; white-space: nowrap;
+  }
+  .btn-gold { background: var(--gold); color: #0d0d0f; border-color: var(--gold); font-weight: 500; }
+  .btn-gold:hover { background: var(--gold2); }
+  .btn-ghost { background: transparent; color: var(--text2); }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+  .btn-danger { background: transparent; color: #8b2d2d; border-color: #8b2d2d33; font-size: 12px; padding: 4px 10px; }
+  .btn-danger:hover { background: #8b2d2d22; }
+
+  .categories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.2rem; }
+  .cat-pill {
+    padding: 4px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;
+    border: 0.5px solid var(--border2); color: var(--text2); background: transparent;
+    transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .cat-pill:hover, .cat-pill.active { background: var(--gold); color: #0d0d0f; border-color: var(--gold); }
+
+  .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .item-card {
+    background: var(--bg3); border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 0.9rem 1rem;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color 0.15s;
+  }
+  .item-card:hover { border-color: var(--border2); }
+  .item-name { font-size: 14px; color: var(--text); font-weight: 400; }
+  .item-cat { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+  .item-amount { font-size: 12px; color: var(--gold); }
+
+  .empty-state { text-align: center; padding: 3rem; color: var(--text3); font-size: 14px; }
+  .empty-state .emoji { font-size: 2.5rem; display: block; margin-bottom: 1rem; }
+
+  /* ── AI Recommend ── */
+  .mode-buttons { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 2rem; }
+  .mode-btn {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 10px; padding: 1.4rem 1rem; cursor: pointer;
+    text-align: center; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .mode-btn:hover { border-color: var(--gold); }
+  .mode-btn.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .mode-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+  .mode-title { font-size: 13px; color: var(--text); font-weight: 500; display: block; }
+  .mode-desc { font-size: 11px; color: var(--text3); display: block; margin-top: 4px; }
+
+  .pref-area textarea {
+    width: 100%; background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: 6px; padding: 0.8rem 1rem; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; resize: vertical;
+    min-height: 80px; outline: none; transition: border-color 0.2s;
+  }
+  .pref-area textarea:focus { border-color: var(--gold); }
+  .pref-area label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 8px; }
+
+  .ai-output {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 10px; padding: 1.75rem;
+    min-height: 200px; position: relative;
+  }
+  .ai-output.loading { display: flex; align-items: center; justify-content: center; }
+  .loader { display: flex; gap: 6px; }
+  .loader span {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--gold);
+    animation: pulse 1.2s infinite ease-in-out;
+  }
+  .loader span:nth-child(2) { animation-delay: 0.2s; }
+  .loader span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.1); } }
+
+  .ai-result { line-height: 1.8; color: var(--text); }
+  .ai-result h3 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.2rem; color: var(--gold); margin: 1.2rem 0 0.6rem; }
+  .ai-result h3:first-child { margin-top: 0; }
+  .ai-result ul { padding-left: 1.2rem; color: var(--text2); }
+  .ai-result li { margin-bottom: 4px; }
+  .ai-result strong { color: var(--text); font-weight: 500; }
+  .ai-result p { color: var(--text2); margin-bottom: 0.8rem; }
+  .ai-result .cocktail-card {
+    background: var(--bg3); border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1rem;
+  }
+  .ai-placeholder { color: var(--text3); text-align: center; padding: 2rem; font-size: 14px; font-style: italic; }
+
+  .action-row { display: flex; gap: 10px; margin-top: 1.5rem; align-items: center; }
+  .char-count { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+  /* ── Preferences ── */
+  .pref-section h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.3rem; margin-bottom: 1.5rem; }
+  .pref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .pref-group label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 8px; }
+  .pref-group input, .pref-group select, .pref-group textarea {
+    width: 100%; background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: 6px; padding: 0.6rem 0.9rem; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .pref-group input:focus, .pref-group select:focus, .pref-group textarea:focus { border-color: var(--gold); }
+  .pref-group select option { background: var(--bg3); }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .tag {
+    padding: 4px 12px; border-radius: 20px; font-size: 12px;
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    color: var(--text2); display: flex; align-items: center; gap: 6px;
+  }
+  .tag button { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 14px; line-height: 1; padding: 0; }
+  .tag button:hover { color: var(--red); }
+
+  .save-bar { display: flex; align-items: center; gap: 12px; padding-top: 1rem; border-top: 0.5px solid var(--border); }
+  .save-status { font-size: 12px; color: var(--text3); }
+  .save-status.saved { color: var(--gold); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+    background: var(--bg2); border: 0.5px solid var(--gold);
+    border-radius: 8px; padding: 0.75rem 1.25rem;
+    font-size: 13px; color: var(--gold);
+    transform: translateY(10px); opacity: 0;
+    transition: all 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Divider ── */
+  .divider { height: 0.5px; background: var(--border); margin: 1.5rem 0; }
+
+  @media (max-width: 600px) {
+    .mode-buttons { grid-template-columns: 1fr; }
+    .pref-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; }
+    .tabs { flex-direction: column; }
+    .items-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">
+      <h1>My <em>Private</em> Bar</h1>
+      <p>個人私藏調酒工作站</p>
+    </div>
+    <div class="header-count">
+      <span class="count-num" id="totalCount">0</span>
+      <span class="count-label">種材料</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="inventory">🍾 我的材料</button>
+    <button class="tab" data-tab="recommend">✨ AI 推薦</button>
+    <button class="tab" data-tab="preferences">⚙️ 偏好設定</button>
+  </div>
+
+  <!-- INVENTORY -->
+  <section id="inventory" class="active">
+    <div class="card">
+      <div class="inv-header">
+        <h2>酒櫃管理</h2>
+        <button class="btn btn-ghost" onclick="exportList()">匯出清單</button>
+      </div>
+      <div class="add-form">
+        <input type="text" id="itemName" placeholder="材料名稱（例：Tanqueray Gin）" maxlength="60" />
+        <select id="itemCat">
+          <option value="烈酒">烈酒 Spirits</option>
+          <option value="利口酒">利口酒 Liqueur</option>
+          <option value="葡萄酒">葡萄酒 Wine</option>
+          <option value="啤酒">啤酒 Beer</option>
+          <option value="果汁">果汁 Juice</option>
+          <option value="糖漿">糖漿 Syrup</option>
+          <option value="苦精">苦精 Bitters</option>
+          <option value="氣泡水">氣泡水 Soda</option>
+          <option value="香料">香料 Spice</option>
+          <option value="其他">其他 Other</option>
+        </select>
+        <select id="itemAmt">
+          <option value="充足">充足</option>
+          <option value="半瓶">半瓶</option>
+          <option value="少量">少量</option>
+        </select>
+        <button class="btn btn-gold" onclick="addItem()">＋ 加入</button>
+      </div>
+
+      <div class="categories">
+        <button class="cat-pill active" data-cat="all">全部</button>
+        <button class="cat-pill" data-cat="烈酒">烈酒</button>
+        <button class="cat-pill" data-cat="利口酒">利口酒</button>
+        <button class="cat-pill" data-cat="葡萄酒">葡萄酒</button>
+        <button class="cat-pill" data-cat="果汁">果汁</button>
+        <button class="cat-pill" data-cat="糖漿">糖漿</button>
+        <button class="cat-pill" data-cat="苦精">苦精</button>
+        <button class="cat-pill" data-cat="氣泡水">氣泡水</button>
+        <button class="cat-pill" data-cat="其他">其他</button>
+      </div>
+
+      <div class="items-grid" id="itemsGrid">
+        <div class="empty-state" style="grid-column:1/-1">
+          <span class="emoji">🍸</span>
+          還沒有材料，快去加入你的第一瓶酒吧！
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMEND -->
+  <section id="recommend">
+    <div class="card">
+      <div class="mode-buttons">
+        <button class="mode-btn selected" data-mode="classic" onclick="selectMode(this)">
+          <span class="mode-icon">🥂</span>
+          <span class="mode-title">經典調酒</span>
+          <span class="mode-desc">用現有材料做經典款</span>
+        </button>
+        <button class="mode-btn" data-mode="creative" onclick="selectMode(this)">
+          <span class="mode-icon">🎨</span>
+          <span class="mode-title">創意調酒</span>
+          <span class="mode-desc">AI 幫你發揮創意</span>
+        </button>
+        <button class="mode-btn" data-mode="shopping" onclick="selectMode(this)">
+          <span class="mode-icon">🛒</span>
+          <span class="mode-title">採購建議</span>
+          <span class="mode-desc">推薦你下一瓶買什麼</span>
+        </button>
+      </div>
+
+      <div class="pref-area" style="margin-bottom:1rem;">
+        <label>額外備注（心情、場合、不喜歡的口味…）</label>
+        <textarea id="extraNote" placeholder="例：今天想喝清爽一點的、要招待不喝酒精的朋友、不喜歡太甜…"></textarea>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-gold" onclick="getRecommendation()">✨ 讓 AI 推薦</button>
+        <button class="btn btn-ghost" onclick="clearResult()">清除</button>
+        <span class="char-count" id="matCount">0 種材料</span>
+      </div>
+    </div>
+
+    <div class="ai-output" id="aiOutput">
+      <div class="ai-placeholder">選擇模式後按「讓 AI 推薦」，馬上為你量身打造！</div>
+    </div>
+  </section>
+
+  <!-- PREFERENCES -->
+  <section id="preferences">
+    <div class="card pref-section">
+      <h2>口味偏好設定</h2>
+      <div class="pref-grid">
+        <div class="pref-group">
+          <label>偏好口味風格</label>
+          <select id="prefFlavor">
+            <option value="">不限</option>
+            <option value="清爽酸甜">清爽酸甜</option>
+            <option value="濃郁甜蜜">濃郁甜蜜</option>
+            <option value="苦感複雜">苦感複雜（Bitter）</option>
+            <option value="草本植物">草本植物（Herbal）</option>
+            <option value="煙燻泥炭">煙燻泥炭（Smoky）</option>
+            <option value="熱帶水果">熱帶水果</option>
+            <option value="乾淨純粹">乾淨純粹（Dry）</option>
+          </select>
+        </div>
+        <div class="pref-group">
+          <label>酒精接受度</label>
+          <select id="prefAlcohol">
+            <option value="高">高（喜歡酒味明顯）</option>
+            <option value="中">中（適中）</option>
+            <option value="低">低（偏向低酒精）</option>
+            <option value="無">無（無酒精調飲）</option>
+          </select>
+        </div>
+        <div class="pref-group">
+          <label>喜歡的基酒</label>
+          <input type="text" id="prefBase" placeholder="例：琴酒、威士忌…" />
+        </div>
+        <div class="pref-group">
+          <label>不喜歡的材料</label>
+          <input type="text" id="prefDislike" placeholder="例：甘草、薄荷…" />
+        </div>
+      </div>
+
+      <div class="pref-group" style="margin-bottom:1.2rem;">
+        <label>常見場合</label>
+        <div class="tag-row" id="occasionTags">
+          <button class="tag" onclick="addOccasionTag(this)">+ 自己獨飲</button>
+          <button class="tag" onclick="addOccasionTag(this)">+ 朋友聚會</button>
+          <button class="tag" onclick="addOccasionTag(this)">+ 浪漫約會</button>
+          <button class="tag" onclick="addOccasionTag(this)">+ 下班放鬆</button>
+        </div>
+        <div class="tag-row" id="selectedOccasions" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="pref-group" style="margin-bottom:1.5rem;">
+        <label>其他備注 / 特殊需求</label>
+        <textarea id="prefNotes" placeholder="例：朋友對乳製品過敏、預算有限、喜歡日式風格…" style="width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;padding:0.7rem 0.9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:80px;outline:none;resize:vertical;"></textarea>
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn-gold" onclick="savePreferences()">儲存偏好</button>
+        <span class="save-status" id="saveStatus"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let inventory = [];
+let preferences = {};
+let currentFilter = 'all';
+let currentMode = 'classic';
+
+// ── Storage helpers (uses Artifact Storage API if available, falls back to localStorage) ──
+async function storageGet(key) {
+  try {
+    if (window.storage) {
+      const r = await window.storage.get(key);
+      return r ? JSON.parse(r.value) : null;
+    }
+  } catch(e) {}
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+}
+async function storageSet(key, value) {
+  try {
+    if (window.storage) {
+      await window.storage.set(key, JSON.stringify(value));
+      return;
+    }
+  } catch(e) {}
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+}
+
+// ── Init ──
+async function init() {
+  const savedInv = await storageGet('bar:inventory');
+  const savedPref = await storageGet('bar:preferences');
+  if (savedInv) inventory = savedInv;
+  if (savedPref) {
+    preferences = savedPref;
+    applyPreferences();
+  }
+  renderInventory();
+  updateCount();
+}
+
+function applyPreferences() {
+  if (preferences.flavor) document.getElementById('prefFlavor').value = preferences.flavor;
+  if (preferences.alcohol) document.getElementById('prefAlcohol').value = preferences.alcohol;
+  if (preferences.base) document.getElementById('prefBase').value = preferences.base;
+  if (preferences.dislike) document.getElementById('prefDislike').value = preferences.dislike;
+  if (preferences.notes) document.getElementById('prefNotes').value = preferences.notes;
+  if (preferences.occasions) {
+    const el = document.getElementById('selectedOccasions');
+    el.innerHTML = '';
+    preferences.occasions.forEach(o => addSelectedOccasion(o));
+  }
+}
+
+// ── Tabs ──
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('section').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'recommend') updateMatCount();
+  });
+});
+
+// ── Inventory ──
+function addItem() {
+  const name = document.getElementById('itemName').value.trim();
+  if (!name) { showToast('請輸入材料名稱'); return; }
+  const cat = document.getElementById('itemCat').value;
+  const amt = document.getElementById('itemAmt').value;
+  if (inventory.find(i => i.name.toLowerCase() === name.toLowerCase())) {
+    showToast('這個材料已經在清單裡了'); return;
+  }
+  inventory.unshift({ id: Date.now(), name, cat, amt });
+  document.getElementById('itemName').value = '';
+  storageSet('bar:inventory', inventory);
+  renderInventory();
+  updateCount();
+  showToast('✓ 已加入 ' + name);
+}
+
+document.getElementById('itemName').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+function removeItem(id) {
+  inventory = inventory.filter(i => i.id !== id);
+  storageSet('bar:inventory', inventory);
+  renderInventory();
+  updateCount();
+}
+
+function renderInventory() {
+  const grid = document.getElementById('itemsGrid');
+  const filtered = currentFilter === 'all' ? inventory : inventory.filter(i => i.cat === currentFilter);
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <span class="emoji">🍸</span>
+      ${inventory.length === 0 ? '還沒有材料，快去加入你的第一瓶酒吧！' : '這個分類目前沒有材料'}
+    </div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(item => `
+    <div class="item-card">
+      <div class="item-cat">${item.cat}</div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-footer">
+        <span class="item-amount">${item.amt}</span>
+        <button class="btn btn-danger" onclick="removeItem(${item.id})">移除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCount() {
+  document.getElementById('totalCount').textContent = inventory.length;
+}
+
+// ── Filter ──
+document.querySelectorAll('.cat-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    currentFilter = p.dataset.cat;
+    renderInventory();
+  });
+});
+
+// ── Export ──
+function exportList() {
+  const text = inventory.map(i => `${i.name} (${i.cat}, ${i.amt})`).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('清單已複製到剪貼簿')).catch(() => {
+    const w = window.open('', '_blank');
+    w.document.write('<pre>' + text + '</pre>');
+  });
+}
+
+// ── Recommend ──
+function selectMode(btn) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  currentMode = btn.dataset.mode;
+}
+
+function updateMatCount() {
+  document.getElementById('matCount').textContent = `${inventory.length} 種材料`;
+}
+
+function clearResult() {
+  document.getElementById('aiOutput').innerHTML = '<div class="ai-placeholder">選擇模式後按「讓 AI 推薦」，馬上為你量身打造！</div>';
+}
+
+async function getRecommendation() {
+  if (inventory.length === 0 && currentMode !== 'shopping') {
+    showToast('請先到「我的材料」加入你的酒和飲料');
+    return;
+  }
+
+  const output = document.getElementById('aiOutput');
+  output.innerHTML = '<div class="loader"><span></span><span></span><span></span></div>';
+  output.classList.add('loading');
+
+  const extra = document.getElementById('extraNote').value.trim();
+  const pref = await storageGet('bar:preferences') || {};
+
+  const modePrompts = {
+    classic: `你是一位專業調酒師。根據以下用戶的酒吧庫存，推薦 3 款可以用現有材料製作的「經典調酒」。
+每款需包含：調酒名稱、所需材料（標注哪些用戶已有）、製作步驟（3-5步）、口味描述。
+以繁體中文回答，格式清晰。`,
+    creative: `你是一位富有創意的米其林級調酒師。根據以下用戶的酒吧庫存，發揮創意推薦 2-3 款「獨特創意調酒」。
+可以是你自創的，也可以是不常見的配方。每款需包含：創意調酒名稱、靈感來源、所需材料（標注哪些用戶已有）、製作步驟、預期口味與飲用場合。
+以繁體中文回答，請有個性一點！`,
+    shopping: `你是一位專業的調酒顧問。根據用戶目前的酒吧庫存，分析後推薦 3-5 款建議購買的「新材料或酒款」。
+每個推薦需包含：建議品名或類型、理由（能和現有材料搭配出什麼）、大概價位範圍、優先購買順序。
+以繁體中文回答。`
+  };
+
+  const invList = inventory.map(i => `${i.name}（${i.cat}，${i.amt}）`).join('、');
+  const prefText = [
+    pref.flavor ? `口味偏好：${pref.flavor}` : '',
+    pref.alcohol ? `酒精接受度：${pref.alcohol}` : '',
+    pref.base ? `喜歡的基酒：${pref.base}` : '',
+    pref.dislike ? `不喜歡：${pref.dislike}` : '',
+    pref.notes ? `備注：${pref.notes}` : '',
+    extra ? `今日備注：${extra}` : ''
+  ].filter(Boolean).join('\n');
+
+  const userMsg = `我的庫存：${invList || '目前為空'}
+
+${prefText ? '個人偏好：\n' + prefText : ''}
+
+請給我推薦！`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: modePrompts[currentMode],
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(b => b.text || '').join('') || '無法取得回應，請稍後再試。';
+    output.classList.remove('loading');
+    output.innerHTML = '<div class="ai-result">' + formatAIText(text) + '</div>';
+  } catch (e) {
+    output.classList.remove('loading');
+    output.innerHTML = '<div class="ai-result" style="color:var(--text3)">連線失敗，請確認網路狀態後再試。<br><small>' + e.message + '</small></div>';
+  }
+}
+
+function formatAIText(text) {
+  return text
+    .replace(/^###\s(.+)$/gm, '<h3>$1</h3>')
+    .replace(/^##\s(.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^[\-\*]\s(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])(.+)$/gm, (m, p1) => p1 ? '<p>' + p1 + '</p>' : '')
+    .replace(/<p><\/p>/g, '');
+}
+
+// ── Preferences ──
+function addOccasionTag(btn) {
+  const label = btn.textContent.replace('+ ', '');
+  addSelectedOccasion(label);
+}
+
+function addSelectedOccasion(label) {
+  const el = document.getElementById('selectedOccasions');
+  if (el.innerHTML.includes(label)) return;
+  const tag = document.createElement('span');
+  tag.className = 'tag';
+  tag.innerHTML = `${label}<button onclick="this.parentElement.remove()" title="移除">×</button>`;
+  el.appendChild(tag);
+}
+
+async function savePreferences() {
+  const occasions = Array.from(document.querySelectorAll('#selectedOccasions .tag'))
+    .map(t => t.textContent.replace('×', '').trim());
+  preferences = {
+    flavor: document.getElementById('prefFlavor').value,
+    alcohol: document.getElementById('prefAlcohol').value,
+    base: document.getElementById('prefBase').value,
+    dislike: document.getElementById('prefDislike').value,
+    notes: document.getElementById('prefNotes').value,
+    occasions
+  };
+  await storageSet('bar:preferences', preferences);
+  const s = document.getElementById('saveStatus');
+  s.textContent = '✓ 已儲存';
+  s.className = 'save-status saved';
+  setTimeout(() => { s.textContent = ''; s.className = 'save-status'; }, 3000);
+  showToast('偏好已儲存！');
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>
