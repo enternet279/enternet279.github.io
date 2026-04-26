@@ -11,6 +11,7 @@
     --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.14);
     --gold: #c9a84c; --gold2: #e8c97a;
     --text: #e8e4dc; --text2: #9a9590; --text3: #5c5852; --red: #8b2d2d;
+    --green: #6fa86f;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 15px; line-height: 1.6; }
@@ -105,6 +106,32 @@
     header { flex-direction: column; align-items: flex-start; }
     .tabs { flex-direction: column; }
   }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .sync-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--bg2); cursor: pointer; transition: all 0.2s; }
+  .sync-indicator:hover { border-color: var(--border2); }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); }
+  .sync-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .sync-dot.syncing { background: var(--gold); animation: blink 1s infinite; }
+  .sync-dot.error { background: var(--red); }
+  @keyframes blink { 50% { opacity: 0.3; } }
+  .sync-status-card { display: flex; align-items: center; gap: 12px; padding: 1rem 1.2rem; background: var(--bg3); border: 0.5px solid var(--border); border-radius: 8px; margin-bottom: 1.5rem; }
+  .sync-status-card .big-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+  .sync-status-card .big-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .sync-status-card .big-dot.error { background: var(--red); }
+  .sync-status-card .status-main { flex: 1; }
+  .sync-status-card .status-label { font-size: 14px; color: var(--text); }
+  .sync-status-card .status-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .sync-form { display: flex; flex-direction: column; gap: 1rem; }
+  .sync-form .field { display: flex; flex-direction: column; gap: 6px; }
+  .sync-form label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sync-form input { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; padding: 0.7rem 0.9rem; color: var(--text); font-family: monospace; font-size: 13px; outline: none; width: 100%; }
+  .sync-form input:focus { border-color: var(--gold); }
+  .sync-form .hint { font-size: 11px; color: var(--text3); line-height: 1.5; }
+  .sync-form .hint a { color: var(--gold); text-decoration: none; }
+  .sync-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 0.5rem; }
+  .guide-box { background: var(--bg3); border-left: 2px solid var(--gold); padding: 1rem 1.2rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 13px; color: var(--text2); line-height: 1.7; }
+  .guide-box strong { color: var(--gold); }
+  .guide-box ol { padding-left: 1.2rem; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -114,9 +141,15 @@
       <h1>My <em>Private</em> Bar</h1>
       <p>個人私藏調酒工作站</p>
     </div>
-    <div class="header-count">
-      <span class="count-num" id="totalCount">0</span>
-      <span class="count-label">種材料</span>
+    <div class="header-right">
+      <div class="header-count">
+        <span class="count-num" id="totalCount">0</span>
+        <span class="count-label">種材料</span>
+      </div>
+      <div class="sync-indicator" onclick="switchToTab('sync')">
+        <span class="sync-dot" id="syncDot"></span>
+        <span id="syncText">未設定同步</span>
+      </div>
     </div>
   </header>
 
@@ -124,6 +157,7 @@
     <button class="tab active" data-tab="inventory">🍾 我的材料</button>
     <button class="tab" data-tab="recommend">✨ AI 推薦</button>
     <button class="tab" data-tab="preferences">⚙️ 偏好設定</button>
+    <button class="tab" data-tab="sync">☁️ 同步</button>
   </div>
 
   <!-- 材料 -->
@@ -264,6 +298,58 @@
       </div>
     </div>
   </section>
+  
+  <section id="sync">
+    <div class="card">
+      <div class="inv-header"><h2>☁️ 雲端同步（GitHub Gist）</h2></div>
+
+      <div class="sync-status-card">
+        <span class="big-dot" id="bigSyncDot"></span>
+        <div class="status-main">
+          <div class="status-label" id="syncStatusLabel">尚未連接雲端</div>
+          <div class="status-sub" id="syncStatusSub">設定 Token 後即可跨裝置同步</div>
+        </div>
+      </div>
+
+      <div class="guide-box">
+        <strong>💡 首次設定步驟:</strong>
+        <ol>
+          <li>到 <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Token 頁面</a> 建立新 token</li>
+          <li>權限只勾「<strong>Gists → Read and write</strong>」</li>
+          <li>複製 token 貼到下面</li>
+          <li>第一台裝置:留空 Gist ID 按「建立 / 連接」;其他裝置:填入第一台產生的 Gist ID 再按</li>
+        </ol>
+      </div>
+
+      <div class="sync-form">
+        <div class="field">
+          <label>GitHub Personal Access Token</label>
+          <input type="password" id="gistToken" placeholder="github_pat_... 或 ghp_..." autocomplete="off" />
+          <div class="hint">Token 只存在這台裝置的瀏覽器。<a href="https://github.com/settings/tokens?type=beta" target="_blank">→ 申請 Token</a></div>
+        </div>
+        <div class="field">
+          <label>Gist ID（第二台以後的裝置需填入）</label>
+          <input type="text" id="gistId" placeholder="留空=建立新 Gist" autocomplete="off" />
+          <div class="hint">建立後自動顯示 ID,複製到其他裝置即可共用。</div>
+        </div>
+        <div class="sync-actions">
+          <button class="btn btn-gold" onclick="setupGist()">🔗 建立 / 連接</button>
+          <button class="btn btn-ghost" onclick="manualUpload()">⬆️ 上傳</button>
+          <button class="btn btn-ghost" onclick="manualDownload()">⬇️ 下載</button>
+          <button class="btn btn-danger" onclick="disconnectGist()" style="font-size:13px;padding:0.6rem 1.2rem;">🔌 中斷</button>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;padding-top:1.5rem;border-top:0.5px solid var(--border);">
+        <h3 style="font-family:'Playfair Display',serif;font-weight:400;font-size:1.1rem;margin-bottom:0.8rem;">💾 本地備份</h3>
+        <div class="sync-actions">
+          <button class="btn btn-ghost" onclick="exportJSON()">📥 匯出 JSON</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">📤 匯入 JSON</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)" />
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -274,17 +360,26 @@ let inventory = [];
 let preferences = {};
 let currentFilter = 'all';
 let currentMode = 'classic';
+let gistConfig = { token: '', gistId: '' };
+let syncState = 'offline';
+let syncDebounceTimer = null;
 
 function lsGet(key) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
 function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
 
 function init() {
-  const inv = lsGet('bar:inventory');
-  const pref = lsGet('bar:preferences');
-  if (inv) inventory = inv;
-  if (pref) { preferences = pref; applyPreferences(); }
+  inventory = lsGet('bar:inventory') || [];
+  preferences = lsGet('bar:preferences') || {};
+  recipes = lsGet('bar:recipes') || [];
+  gistConfig = lsGet('bar:gistConfig') || { token: '', gistId: '' };
+
+  applyPreferences();
   renderInventory();
+  renderRecipes();
   updateCount();
+  updateSyncUI();
+
+  if (gistConfig.token && gistConfig.gistId) autoDownload();
 }
 
 function applyPreferences() {
@@ -304,6 +399,10 @@ document.querySelectorAll('.tab').forEach(t => {
     t.classList.add('active');
     document.getElementById(t.dataset.tab).classList.add('active');
     if (t.dataset.tab === 'recommend') document.getElementById('matCount').textContent = inventory.length + ' 種材料';
+    if (t.dataset.tab === 'sync') {
+      document.getElementById('gistToken').value = gistConfig.token || '';
+      document.getElementById('gistId').value = gistConfig.gistId || '';
+    }
   });
 });
 
@@ -315,7 +414,7 @@ function addItem() {
   const amt = document.getElementById('itemAmt').value;
   inventory.unshift({ id: Date.now(), name, cat, amt });
   document.getElementById('itemName').value = '';
-  lsSet('bar:inventory', inventory);
+  saveAndSync('inventory');
   renderInventory(); updateCount();
   showToast('✓ 已加入 ' + name);
 }
@@ -324,7 +423,7 @@ document.getElementById('itemName').addEventListener('keydown', e => { if (e.key
 
 function removeItem(id) {
   inventory = inventory.filter(i => i.id !== id);
-  lsSet('bar:inventory', inventory);
+  saveAndSync('inventory');
   renderInventory(); updateCount();
 }
 
@@ -453,7 +552,7 @@ function savePreferences() {
     notes: document.getElementById('prefNotes').value,
     occasions
   };
-  lsSet('bar:preferences', preferences);
+  saveAndSync('preferences');
   const s = document.getElementById('saveStatus');
   s.textContent = '✓ 已儲存'; s.className = 'save-status saved';
   setTimeout(() => { s.textContent = ''; s.className = 'save-status'; }, 3000);
@@ -465,7 +564,189 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+/* ============ 雲端同步 (GitHub Gist) ============ */
 
+function saveAndSync(key) {
+  // 先存本地
+  if (key === 'inventory') saveAndSync('inventory');
+  else if (key === 'preferences') lsSet('bar:preferences', preferences);
+  else if (key === 'recipes') saveAndSync('recipes');
+  // 觸發同步(debounce 1.5 秒,避免頻繁請求)
+  if (!gistConfig.token || !gistConfig.gistId) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => uploadToGist(true), 1500);
+}
+
+function updateSyncUI() {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  const bigDot = document.getElementById('bigSyncDot');
+  const label = document.getElementById('syncStatusLabel');
+  const sub = document.getElementById('syncStatusSub');
+  dot.className = 'sync-dot'; if (bigDot) bigDot.className = 'big-dot';
+  if (!gistConfig.token || !gistConfig.gistId) {
+    txt.textContent = '未設定同步';
+    if (label) { label.textContent = '尚未連接雲端'; sub.textContent = '設定 Token 後即可跨裝置同步'; }
+  } else if (syncState === 'syncing') {
+    dot.classList.add('syncing'); txt.textContent = '同步中...';
+    if (bigDot) bigDot.classList.add('syncing');
+    if (label) { label.textContent = '正在同步...'; sub.textContent = '資料傳輸中'; }
+  } else if (syncState === 'error') {
+    dot.classList.add('error'); txt.textContent = '同步失敗';
+    if (bigDot) bigDot.classList.add('error');
+    if (label) { label.textContent = '同步失敗'; sub.textContent = '請檢查 Token 是否正確'; }
+  } else {
+    dot.classList.add('online'); txt.textContent = '已同步';
+    if (bigDot) bigDot.classList.add('online');
+    if (label) { label.textContent = '已連接雲端'; sub.textContent = 'Gist ID: ' + gistConfig.gistId.substring(0, 12) + '...'; }
+  }
+}
+
+async function setupGist() {
+  const token = document.getElementById('gistToken').value.trim();
+  const gistId = document.getElementById('gistId').value.trim();
+  if (!token) { showToast('請先貼上 Token'); return; }
+  syncState = 'syncing'; updateSyncUI();
+
+  try {
+    if (gistId) {
+      // 連接既有 Gist:先下載
+      gistConfig = { token, gistId };
+      lsSet('bar:gistConfig', gistConfig);
+      await downloadFromGist();
+      showToast('✓ 已連接 Gist,資料已同步下來');
+    } else {
+      // 建立新 Gist
+      const body = {
+        description: 'My Private Bar - Data Sync',
+        public: false,
+        files: { [GIST_FILENAME]: { content: JSON.stringify(buildDataPayload(), null, 2) } }
+      };
+      const res = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error('建立失敗:' + res.status);
+      const data = await res.json();
+      gistConfig = { token, gistId: data.id };
+      lsSet('bar:gistConfig', gistConfig);
+      document.getElementById('gistId').value = data.id;
+      showToast('✓ 已建立 Gist!複製 ID 到其他裝置即可共用');
+    }
+    syncState = 'online'; updateSyncUI();
+  } catch(e) {
+    syncState = 'error'; updateSyncUI();
+    showToast('❌ ' + e.message);
+  }
+}
+
+function buildDataPayload() {
+  return {
+    inventory, preferences, recipes,
+    lastUpdate: Date.now(),
+    version: 1
+  };
+}
+
+async function uploadToGist(silent = false) {
+  if (!gistConfig.token || !gistConfig.gistId) {
+    if (!silent) showToast('請先設定 Gist'); return;
+  }
+  syncState = 'syncing'; updateSyncUI();
+  try {
+    const body = { files: { [GIST_FILENAME]: { content: JSON.stringify(buildDataPayload(), null, 2) } } };
+    const res = await fetch('https://api.github.com/gists/' + gistConfig.gistId, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + gistConfig.token, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('上傳失敗:' + res.status);
+    syncState = 'online'; updateSyncUI();
+    if (!silent) showToast('✓ 已上傳到雲端');
+  } catch(e) {
+    syncState = 'error'; updateSyncUI();
+    if (!silent) showToast('❌ ' + e.message);
+  }
+}
+
+async function downloadFromGist() {
+  if (!gistConfig.token || !gistConfig.gistId) return;
+  syncState = 'syncing'; updateSyncUI();
+  try {
+    const res = await fetch('https://api.github.com/gists/' + gistConfig.gistId, {
+      headers: { 'Authorization': 'Bearer ' + gistConfig.token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) throw new Error('下載失敗:' + res.status);
+    const data = await res.json();
+    const file = data.files[GIST_FILENAME];
+    if (!file) throw new Error('Gist 內找不到資料檔');
+    const payload = JSON.parse(file.content);
+    if (payload.inventory) { inventory = payload.inventory; saveAndSync('inventory'); }
+    if (payload.preferences) { preferences = payload.preferences; lsSet('bar:preferences', preferences); }
+    if (payload.recipes) { recipes = payload.recipes; saveAndSync('recipes'); }
+    applyPreferences(); renderInventory(); renderRecipes(); updateCount();
+    syncState = 'online'; updateSyncUI();
+  } catch(e) {
+    syncState = 'error'; updateSyncUI();
+    throw e;
+  }
+}
+
+async function autoDownload() {
+  try { await downloadFromGist(); showToast('✓ 已從雲端同步最新資料'); }
+  catch(e) { showToast('⚠️ 無法從雲端下載:' + e.message); }
+}
+
+async function manualUpload() { await uploadToGist(false); }
+async function manualDownload() {
+  try { await downloadFromGist(); showToast('✓ 已從雲端下載'); }
+  catch(e) { showToast('❌ ' + e.message); }
+}
+
+function disconnectGist() {
+  if (!confirm('確定中斷雲端連線?本地資料會保留,但不再自動同步。')) return;
+  gistConfig = { token: '', gistId: '' };
+  lsSet('bar:gistConfig', gistConfig);
+  document.getElementById('gistToken').value = '';
+  document.getElementById('gistId').value = '';
+  syncState = 'offline'; updateSyncUI();
+  showToast('已中斷雲端連線');
+}
+
+/* ============ 本地 JSON 備份 ============ */
+
+function exportJSON() {
+  const data = buildDataPayload();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `private-bar-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ 已下載備份檔');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!confirm(`將匯入 ${data.inventory?.length || 0} 種材料、${data.recipes?.length || 0} 份酒譜,會覆蓋現有資料。確定?`)) return;
+      if (data.inventory) { inventory = data.inventory; saveAndSync('inventory'); }
+      if (data.preferences) { preferences = data.preferences; lsSet('bar:preferences', preferences); }
+      if (data.recipes) { recipes = data.recipes; saveAndSync('recipes'); }
+      applyPreferences(); renderInventory(); renderRecipes(); updateCount();
+      saveAndSync('inventory');
+      showToast('✓ 匯入完成');
+    } catch(err) { showToast('❌ 檔案格式錯誤'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
 init();
 </script>
 </body>
