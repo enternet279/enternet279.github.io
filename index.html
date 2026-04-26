@@ -11,7 +11,7 @@
     --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.14);
     --gold: #c9a84c; --gold2: #e8c97a;
     --text: #e8e4dc; --text2: #9a9590; --text3: #5c5852; --red: #8b2d2d;
-    --green: #6fa86f;
+    --green: #4a8b5a; --green2: #6ab87a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 15px; line-height: 1.6; }
@@ -21,9 +21,17 @@
   .brand h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; }
   .brand h1 em { font-style: italic; color: var(--gold); }
   .brand p { font-size: 13px; color: var(--text3); margin-top: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .header-right { display: flex; align-items: flex-end; gap: 1.5rem; }
   .header-count { text-align: right; }
   .count-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); display: block; }
   .count-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sync-indicator { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); cursor: pointer; padding: 6px 10px; border: 0.5px solid var(--border); border-radius: 20px; transition: all 0.2s; }
+  .sync-indicator:hover { border-color: var(--gold); color: var(--text2); }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: background 0.3s; }
+  .sync-dot.synced { background: var(--green2); }
+  .sync-dot.syncing { background: var(--gold); animation: blink 1s infinite; }
+  .sync-dot.error { background: var(--red); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
   .tabs { display: flex; margin-bottom: 2.5rem; border: 0.5px solid var(--border2); border-radius: 6px; overflow: hidden; }
   .tab { flex: 1; padding: 0.75rem 1rem; background: transparent; color: var(--text2); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.2s; border-right: 0.5px solid var(--border2); text-align: center; }
   .tab:last-child { border-right: none; }
@@ -46,6 +54,8 @@
   .btn-ghost:hover { background: var(--bg3); color: var(--text); }
   .btn-danger { background: transparent; color: #8b2d2d; border-color: #8b2d2d33; font-size: 12px; padding: 4px 10px; }
   .btn-danger:hover { background: #8b2d2d22; }
+  .btn-green { background: var(--green); color: #fff; border-color: var(--green); font-size: 12px; padding: 4px 10px; }
+  .btn-green:hover { background: var(--green2); border-color: var(--green2); }
   .categories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.2rem; }
   .cat-pill { padding: 4px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 0.5px solid var(--border2); color: var(--text2); background: transparent; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.05em; }
   .cat-pill:hover, .cat-pill.active { background: var(--gold); color: #0d0d0f; border-color: var(--gold); }
@@ -100,38 +110,71 @@
   .save-status.saved { color: var(--gold); }
   .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; background: var(--bg2); border: 0.5px solid var(--gold); border-radius: 8px; padding: 0.75rem 1.25rem; font-size: 13px; color: var(--gold); transform: translateY(10px); opacity: 0; transition: all 0.3s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── 酒譜收藏 ── */
+  .recipe-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .recipe-toolbar h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.3rem; margin-right: auto; }
+  .recipe-list { display: flex; flex-direction: column; gap: 12px; }
+  .recipe-card { background: var(--bg3); border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .recipe-card-header { display: flex; align-items: center; padding: 1rem 1.2rem; cursor: pointer; gap: 12px; }
+  .recipe-card-header:hover { background: rgba(255,255,255,0.02); }
+  .recipe-emoji { font-size: 1.5rem; flex-shrink: 0; }
+  .recipe-title-block { flex: 1; }
+  .recipe-name { font-size: 15px; color: var(--text); }
+  .recipe-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .recipe-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .badge { padding: 2px 8px; border-radius: 20px; font-size: 11px; border: 0.5px solid; }
+  .badge-classic { color: var(--gold); border-color: rgba(201,168,76,0.3); }
+  .badge-creative { color: #a78bfa; border-color: rgba(167,139,250,0.3); }
+  .badge-manual { color: var(--text3); border-color: var(--border2); }
+  .recipe-toggle-icon { color: var(--text3); font-size: 12px; transition: transform 0.2s; }
+  .recipe-card.open .recipe-toggle-icon { transform: rotate(180deg); }
+  .recipe-body { display: none; padding: 0 1.2rem 1.2rem; border-top: 0.5px solid var(--border); }
+  .recipe-card.open .recipe-body { display: block; }
+  .recipe-section-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin: 1rem 0 6px; }
+  .recipe-ingredients { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.5rem; }
+  .ingr-chip { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--text2); }
+  .recipe-steps { padding-left: 1.2rem; }
+  .recipe-steps li { font-size: 14px; color: var(--text2); margin-bottom: 5px; }
+  .recipe-note { font-size: 13px; color: var(--text3); font-style: italic; margin-top: 10px; border-left: 2px solid var(--border2); padding-left: 10px; }
+  .recipe-actions { display: flex; gap: 8px; margin-top: 1rem; padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
+  .recipe-rating { display: flex; gap: 3px; }
+  .star { font-size: 16px; cursor: pointer; color: var(--text3); transition: color 0.15s; }
+  .star.lit { color: var(--gold); }
+  /* 新增酒譜 modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 14px; width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 2rem; }
+  .modal h3 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.4rem; margin-bottom: 1.5rem; }
+  .modal-grid { display: grid; gap: 1rem; }
+  .modal-group label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
+  .modal-group input, .modal-group select, .modal-group textarea { width: 100%; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; padding: 0.6rem 0.9rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+  .modal-group input:focus, .modal-group select:focus, .modal-group textarea:focus { border-color: var(--gold); }
+  .modal-group textarea { resize: vertical; min-height: 70px; }
+  .modal-group select option { background: var(--bg3); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
+  /* Gist 設定區 */
+  .gist-panel { background: var(--bg3); border: 0.5px solid var(--border); border-radius: 10px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; }
+  .gist-panel h3 { font-size: 14px; font-weight: 500; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .gist-panel h3 svg { flex-shrink: 0; }
+  .gist-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .gist-row input { flex: 1; min-width: 200px; background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 6px; padding: 0.55rem 0.9rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; }
+  .gist-row input:focus { border-color: var(--gold); }
+  .gist-row input::placeholder { color: var(--text3); }
+  .gist-hint { font-size: 12px; color: var(--text3); line-height: 1.6; }
+  .gist-hint a { color: var(--gold); text-decoration: none; }
+  .gist-hint a:hover { text-decoration: underline; }
+  .gist-status-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--text3); }
+  .ai-save-btn { margin-top: 1rem; display: flex; align-items: center; gap: 8px; }
+
   @media (max-width: 600px) {
     .mode-buttons { grid-template-columns: 1fr; }
     .pref-grid { grid-template-columns: 1fr; }
     header { flex-direction: column; align-items: flex-start; }
+    .header-right { flex-direction: column; align-items: flex-start; }
     .tabs { flex-direction: column; }
+    .modal { padding: 1.25rem; }
   }
-  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-  .sync-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--bg2); cursor: pointer; transition: all 0.2s; }
-  .sync-indicator:hover { border-color: var(--border2); }
-  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); }
-  .sync-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .sync-dot.syncing { background: var(--gold); animation: blink 1s infinite; }
-  .sync-dot.error { background: var(--red); }
-  @keyframes blink { 50% { opacity: 0.3; } }
-  .sync-status-card { display: flex; align-items: center; gap: 12px; padding: 1rem 1.2rem; background: var(--bg3); border: 0.5px solid var(--border); border-radius: 8px; margin-bottom: 1.5rem; }
-  .sync-status-card .big-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
-  .sync-status-card .big-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .sync-status-card .big-dot.error { background: var(--red); }
-  .sync-status-card .status-main { flex: 1; }
-  .sync-status-card .status-label { font-size: 14px; color: var(--text); }
-  .sync-status-card .status-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
-  .sync-form { display: flex; flex-direction: column; gap: 1rem; }
-  .sync-form .field { display: flex; flex-direction: column; gap: 6px; }
-  .sync-form label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
-  .sync-form input { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; padding: 0.7rem 0.9rem; color: var(--text); font-family: monospace; font-size: 13px; outline: none; width: 100%; }
-  .sync-form input:focus { border-color: var(--gold); }
-  .sync-form .hint { font-size: 11px; color: var(--text3); line-height: 1.5; }
-  .sync-form .hint a { color: var(--gold); text-decoration: none; }
-  .sync-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 0.5rem; }
-  .guide-box { background: var(--bg3); border-left: 2px solid var(--gold); padding: 1rem 1.2rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 13px; color: var(--text2); line-height: 1.7; }
-  .guide-box strong { color: var(--gold); }
-  .guide-box ol { padding-left: 1.2rem; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -146,18 +189,18 @@
         <span class="count-num" id="totalCount">0</span>
         <span class="count-label">種材料</span>
       </div>
-      <div class="sync-indicator" onclick="switchToTab('sync')">
-        <span class="sync-dot" id="syncDot"></span>
-        <span id="syncText">未設定同步</span>
+      <div class="sync-indicator" onclick="openSyncPanel()" title="Gist 同步狀態">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncLabel">未連線</span>
       </div>
     </div>
   </header>
 
   <div class="tabs">
     <button class="tab active" data-tab="inventory">🍾 我的材料</button>
+    <button class="tab" data-tab="recipes">📖 酒譜收藏</button>
     <button class="tab" data-tab="recommend">✨ AI 推薦</button>
     <button class="tab" data-tab="preferences">⚙️ 偏好設定</button>
-    <button class="tab" data-tab="sync">☁️ 同步</button>
   </div>
 
   <!-- 材料 -->
@@ -165,7 +208,10 @@
     <div class="card">
       <div class="inv-header">
         <h2>酒櫃管理</h2>
-        <button class="btn btn-ghost" onclick="exportList()">匯出清單</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="pullFromGist()" title="從 Gist 拉取最新資料">↓ 拉取</button>
+          <button class="btn btn-ghost" onclick="exportList()">匯出清單</button>
+        </div>
       </div>
       <div class="add-form">
         <input type="text" id="itemName" placeholder="材料名稱（例：Tanqueray Gin）" maxlength="60" />
@@ -207,6 +253,22 @@
     </div>
   </section>
 
+  <!-- 酒譜收藏 -->
+  <section id="recipes">
+    <div class="card">
+      <div class="recipe-toolbar">
+        <h2>酒譜收藏</h2>
+        <button class="btn btn-ghost" onclick="pullFromGist()" title="從 Gist 拉取最新資料">↓ 拉取</button>
+        <button class="btn btn-gold" onclick="openRecipeModal()">＋ 手動新增</button>
+      </div>
+      <div id="recipeList">
+        <div class="empty-state">
+          <span class="emoji">📖</span>還沒有收藏酒譜。<br>可以手動新增，或在 AI 推薦頁面儲存你喜歡的推薦！
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- 推薦 -->
   <section id="recommend">
     <div class="card">
@@ -240,10 +302,41 @@
     <div class="ai-output" id="aiOutput">
       <div class="ai-placeholder">選擇模式後按「讓 AI 推薦」，馬上為你量身打造！</div>
     </div>
+    <div class="ai-save-btn" id="aiSaveRow" style="display:none;">
+      <button class="btn btn-green" onclick="saveAiResultAsRecipe()">📖 儲存此推薦至酒譜收藏</button>
+      <span style="font-size:12px;color:var(--text3);">儲存後可在「酒譜收藏」分頁查看</span>
+    </div>
   </section>
 
   <!-- 偏好 -->
   <section id="preferences">
+    <!-- Gist 同步設定 -->
+    <div class="gist-panel">
+      <h3>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color:var(--gold)"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub Gist 同步（跨裝置資料同步）
+      </h3>
+      <div class="gist-row">
+        <input type="password" id="gistToken" placeholder="GitHub Personal Access Token（需有 gist 權限）" />
+        <button class="btn btn-ghost" onclick="toggleTokenVisibility()">👁</button>
+      </div>
+      <div class="gist-row">
+        <input type="text" id="gistId" placeholder="Gist ID（第一次留空，儲存後自動建立）" />
+        <button class="btn btn-gold" onclick="saveGistSettings()">儲存並連線</button>
+      </div>
+      <div class="gist-hint">
+        需要 GitHub Token？前往 <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank">github.com/settings/tokens</a>，選擇 <code>gist</code> 權限後生成。<br>
+        Token 和 Gist ID 只儲存在本機（localStorage），不會上傳到任何伺服器。
+      </div>
+      <div class="gist-status-row">
+        <div class="sync-dot" id="syncDot2"></div>
+        <span id="gistStatusText">尚未設定</span>
+        <span style="margin-left:auto;"></span>
+        <button class="btn btn-ghost" style="font-size:11px;padding:3px 10px;" onclick="pushToGist()">↑ 推送</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:3px 10px;" onclick="pullFromGist()">↓ 拉取</button>
+      </div>
+    </div>
+
     <div class="card pref-section">
       <h2>口味偏好設定</h2>
       <div class="pref-grid">
@@ -298,89 +391,83 @@
       </div>
     </div>
   </section>
-  
-  <section id="sync">
-    <div class="card">
-      <div class="inv-header"><h2>☁️ 雲端同步（GitHub Gist）</h2></div>
+</div>
 
-      <div class="sync-status-card">
-        <span class="big-dot" id="bigSyncDot"></span>
-        <div class="status-main">
-          <div class="status-label" id="syncStatusLabel">尚未連接雲端</div>
-          <div class="status-sub" id="syncStatusSub">設定 Token 後即可跨裝置同步</div>
-        </div>
+<!-- 新增酒譜 Modal -->
+<div class="modal-overlay" id="recipeModal">
+  <div class="modal">
+    <h3>📖 新增酒譜</h3>
+    <div class="modal-grid">
+      <div class="modal-group">
+        <label>調酒名稱 *</label>
+        <input type="text" id="rName" placeholder="例：Negroni、Mojito…" maxlength="60" />
       </div>
-
-      <div class="guide-box">
-        <strong>💡 首次設定步驟:</strong>
-        <ol>
-          <li>到 <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Token 頁面</a> 建立新 token</li>
-          <li>權限只勾「<strong>Gists → Read and write</strong>」</li>
-          <li>複製 token 貼到下面</li>
-          <li>第一台裝置:留空 Gist ID 按「建立 / 連接」;其他裝置:填入第一台產生的 Gist ID 再按</li>
-        </ol>
+      <div class="modal-group">
+        <label>類型</label>
+        <select id="rType">
+          <option value="classic">🥂 經典</option>
+          <option value="creative">🎨 創意</option>
+          <option value="manual">✍️ 自創</option>
+        </select>
       </div>
-
-      <div class="sync-form">
-        <div class="field">
-          <label>GitHub Personal Access Token</label>
-          <input type="password" id="gistToken" placeholder="github_pat_... 或 ghp_..." autocomplete="off" />
-          <div class="hint">Token 只存在這台裝置的瀏覽器。<a href="https://github.com/settings/tokens?type=beta" target="_blank">→ 申請 Token</a></div>
-        </div>
-        <div class="field">
-          <label>Gist ID（第二台以後的裝置需填入）</label>
-          <input type="text" id="gistId" placeholder="留空=建立新 Gist" autocomplete="off" />
-          <div class="hint">建立後自動顯示 ID,複製到其他裝置即可共用。</div>
-        </div>
-        <div class="sync-actions">
-          <button class="btn btn-gold" onclick="setupGist()">🔗 建立 / 連接</button>
-          <button class="btn btn-ghost" onclick="manualUpload()">⬆️ 上傳</button>
-          <button class="btn btn-ghost" onclick="manualDownload()">⬇️ 下載</button>
-          <button class="btn btn-danger" onclick="disconnectGist()" style="font-size:13px;padding:0.6rem 1.2rem;">🔌 中斷</button>
-        </div>
+      <div class="modal-group">
+        <label>材料（每行一種，例：Gin 30ml）</label>
+        <textarea id="rIngredients" placeholder="Gin 45ml&#10;Sweet Vermouth 25ml&#10;Campari 25ml" rows="4"></textarea>
       </div>
-
-      <div style="margin-top:2rem;padding-top:1.5rem;border-top:0.5px solid var(--border);">
-        <h3 style="font-family:'Playfair Display',serif;font-weight:400;font-size:1.1rem;margin-bottom:0.8rem;">💾 本地備份</h3>
-        <div class="sync-actions">
-          <button class="btn btn-ghost" onclick="exportJSON()">📥 匯出 JSON</button>
-          <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">📤 匯入 JSON</button>
-          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)" />
-        </div>
+      <div class="modal-group">
+        <label>步驟（每行一步）</label>
+        <textarea id="rSteps" placeholder="1. 將所有材料和冰塊放入調酒杯&#10;2. 攪拌 30 秒&#10;3. 濾入冰鎮過的杯子" rows="4"></textarea>
+      </div>
+      <div class="modal-group">
+        <label>口味描述 / 備注</label>
+        <textarea id="rNote" placeholder="苦甜平衡，植物香氣豐富，適合餐前飲用…" rows="2"></textarea>
       </div>
     </div>
-  </section>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRecipeModal()">取消</button>
+      <button class="btn btn-gold" onclick="saveRecipeFromModal()">儲存酒譜</button>
+    </div>
+  </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const WORKER_URL = 'https://wild-cherry-7f89.enternet279.workers.dev/';
-const GIST_FILENAME = 'private-bar-data.json';
+const GIST_API = 'https://api.github.com/gists';
+const GIST_FILENAME = 'my_private_bar_data.json';
 
 let inventory = [];
+let recipes = [];
 let preferences = {};
 let currentFilter = 'all';
 let currentMode = 'classic';
-let gistConfig = { token: '', gistId: '' };
-let syncState = 'offline';
-let syncDebounceTimer = null;
+let lastAiText = '';
+let gistToken = '';
+let gistId = '';
 
+// ── localStorage helpers ──
 function lsGet(key) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
 function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
 
+// ── Init ──
 function init() {
-  inventory = lsGet('bar:inventory') || [];
-  preferences = lsGet('bar:preferences') || {};
-  recipes = lsGet('bar:recipes') || [];
-  gistConfig = lsGet('bar:gistConfig') || { token: '', gistId: '' };
-
-  applyPreferences();
+  const inv = lsGet('bar:inventory');
+  const rec = lsGet('bar:recipes');
+  const pref = lsGet('bar:preferences');
+  gistToken = localStorage.getItem('bar:gistToken') || '';
+  gistId = localStorage.getItem('bar:gistId') || '';
+  if (inv) inventory = inv;
+  if (rec) recipes = rec;
+  if (pref) { preferences = pref; applyPreferences(); }
+  if (gistToken) {
+    document.getElementById('gistToken').value = gistToken;
+    document.getElementById('gistId').value = gistId;
+  }
   renderInventory();
   renderRecipes();
   updateCount();
-  updateSyncUI();
-
-  if (gistConfig.token && gistConfig.gistId) autoDownload();
+  updateSyncUI(gistToken ? 'idle' : 'none');
 }
 
 function applyPreferences() {
@@ -393,6 +480,7 @@ function applyPreferences() {
   if (p.occasions) p.occasions.forEach(o => addSelectedOccasion(o));
 }
 
+// ── Tabs ──
 document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -400,13 +488,10 @@ document.querySelectorAll('.tab').forEach(t => {
     t.classList.add('active');
     document.getElementById(t.dataset.tab).classList.add('active');
     if (t.dataset.tab === 'recommend') document.getElementById('matCount').textContent = inventory.length + ' 種材料';
-    if (t.dataset.tab === 'sync') {
-      document.getElementById('gistToken').value = gistConfig.token || '';
-      document.getElementById('gistId').value = gistConfig.gistId || '';
-    }
   });
 });
 
+// ── Inventory ──
 function addItem() {
   const name = document.getElementById('itemName').value.trim();
   if (!name) { showToast('請輸入材料名稱'); return; }
@@ -415,17 +500,19 @@ function addItem() {
   const amt = document.getElementById('itemAmt').value;
   inventory.unshift({ id: Date.now(), name, cat, amt });
   document.getElementById('itemName').value = '';
-  saveAndSync('inventory');
+  lsSet('bar:inventory', inventory);
   renderInventory(); updateCount();
   showToast('✓ 已加入 ' + name);
+  debouncedPush();
 }
 
 document.getElementById('itemName').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
 
 function removeItem(id) {
   inventory = inventory.filter(i => i.id !== id);
-  saveAndSync('inventory');
+  lsSet('bar:inventory', inventory);
   renderInventory(); updateCount();
+  debouncedPush();
 }
 
 function renderInventory() {
@@ -464,6 +551,129 @@ function exportList() {
   });
 }
 
+// ── Recipes ──
+function renderRecipes() {
+  const list = document.getElementById('recipeList');
+  if (!recipes.length) {
+    list.innerHTML = `<div class="empty-state"><span class="emoji">📖</span>還沒有收藏酒譜。<br>可以手動新增，或在 AI 推薦頁面儲存你喜歡的推薦！</div>`;
+    return;
+  }
+  list.innerHTML = recipes.map((r, idx) => {
+    const badgeClass = r.type === 'classic' ? 'badge-classic' : r.type === 'creative' ? 'badge-creative' : 'badge-manual';
+    const badgeLabel = r.type === 'classic' ? '🥂 經典' : r.type === 'creative' ? '🎨 創意' : '✍️ 自創';
+    const stars = [1,2,3,4,5].map(s => `<span class="star ${s <= (r.rating||0) ? 'lit' : ''}" onclick="rateRecipe(${idx},${s})">★</span>`).join('');
+    const ingrs = Array.isArray(r.ingredients)
+      ? r.ingredients.map(g => `<span class="ingr-chip">${g}</span>`).join('')
+      : `<span class="ingr-chip">${r.ingredients}</span>`;
+    const steps = Array.isArray(r.steps)
+      ? `<ol class="recipe-steps">${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`
+      : `<div style="font-size:14px;color:var(--text2);white-space:pre-wrap;">${r.steps||''}</div>`;
+    return `
+    <div class="recipe-card" id="rc-${idx}">
+      <div class="recipe-card-header" onclick="toggleRecipe(${idx})">
+        <span class="recipe-emoji">🍹</span>
+        <div class="recipe-title-block">
+          <div class="recipe-name">${r.name}</div>
+          <div class="recipe-meta">${r.savedAt ? new Date(r.savedAt).toLocaleDateString('zh-TW') : ''} ${r.note ? '· ' + r.note.substring(0,30) + (r.note.length>30?'…':'') : ''}</div>
+        </div>
+        <div class="recipe-badges">
+          <div class="recipe-rating" style="pointer-events:none;">${stars}</div>
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+        </div>
+        <span class="recipe-toggle-icon">▼</span>
+      </div>
+      <div class="recipe-body">
+        ${r.ingredients && (Array.isArray(r.ingredients) ? r.ingredients.length : r.ingredients) ? `<div class="recipe-section-label">材料</div><div class="recipe-ingredients">${ingrs}</div>` : ''}
+        ${r.steps ? `<div class="recipe-section-label">步驟</div>${steps}` : ''}
+        ${r.note ? `<div class="recipe-note">${r.note}</div>` : ''}
+        <div class="recipe-actions">
+          <div class="recipe-rating">${stars}</div>
+          <span style="margin-left:auto;font-size:12px;color:var(--text3);">評分</span>
+          <button class="btn btn-danger" onclick="removeRecipe(${idx})">移除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleRecipe(idx) {
+  const card = document.getElementById('rc-' + idx);
+  card.classList.toggle('open');
+}
+
+function rateRecipe(idx, stars) {
+  recipes[idx].rating = stars;
+  lsSet('bar:recipes', recipes);
+  renderRecipes();
+  debouncedPush();
+}
+
+function removeRecipe(idx) {
+  recipes.splice(idx, 1);
+  lsSet('bar:recipes', recipes);
+  renderRecipes();
+  debouncedPush();
+  showToast('已移除酒譜');
+}
+
+function openRecipeModal(prefillData) {
+  const modal = document.getElementById('recipeModal');
+  document.getElementById('rName').value = prefillData?.name || '';
+  document.getElementById('rType').value = prefillData?.type || 'manual';
+  document.getElementById('rIngredients').value = prefillData?.ingredients || '';
+  document.getElementById('rSteps').value = prefillData?.steps || '';
+  document.getElementById('rNote').value = prefillData?.note || '';
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('rName').focus(), 100);
+}
+
+function closeRecipeModal() {
+  document.getElementById('recipeModal').classList.remove('open');
+}
+
+document.getElementById('recipeModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('recipeModal')) closeRecipeModal();
+});
+
+function saveRecipeFromModal() {
+  const name = document.getElementById('rName').value.trim();
+  if (!name) { showToast('請輸入調酒名稱'); return; }
+  const ingrsRaw = document.getElementById('rIngredients').value.trim();
+  const stepsRaw = document.getElementById('rSteps').value.trim();
+  const recipe = {
+    id: Date.now(),
+    name,
+    type: document.getElementById('rType').value,
+    ingredients: ingrsRaw ? ingrsRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [],
+    steps: stepsRaw ? stepsRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [],
+    note: document.getElementById('rNote').value.trim(),
+    rating: 0,
+    savedAt: new Date().toISOString()
+  };
+  recipes.unshift(recipe);
+  lsSet('bar:recipes', recipes);
+  renderRecipes();
+  closeRecipeModal();
+  showToast('✓ 酒譜已收藏！');
+  debouncedPush();
+}
+
+// ── Save AI result as recipe ──
+function saveAiResultAsRecipe() {
+  if (!lastAiText) return;
+  // Try to parse first cocktail name from AI text
+  const lines = lastAiText.split('\n');
+  const titleLine = lines.find(l => /^#+\s/.test(l));
+  const guessedName = titleLine ? titleLine.replace(/^#+\s/, '').trim() : 'AI 推薦';
+  openRecipeModal({
+    name: guessedName,
+    type: currentMode === 'classic' ? 'classic' : 'creative',
+    steps: lastAiText.substring(0, 800),
+    note: '由 AI 推薦儲存'
+  });
+}
+
+// ── Recommend ──
 function selectMode(btn) {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -473,6 +683,8 @@ function selectMode(btn) {
 function clearResult() {
   document.getElementById('aiOutput').innerHTML = '<div class="ai-placeholder">選擇模式後按「讓 AI 推薦」，馬上為你量身打造！</div>';
   document.getElementById('aiOutput').classList.remove('loading');
+  document.getElementById('aiSaveRow').style.display = 'none';
+  lastAiText = '';
 }
 
 async function getRecommendation() {
@@ -482,6 +694,7 @@ async function getRecommendation() {
   const output = document.getElementById('aiOutput');
   output.classList.add('loading');
   output.innerHTML = '<div class="loader"><span></span><span></span><span></span></div>';
+  document.getElementById('aiSaveRow').style.display = 'none';
 
   const extra = document.getElementById('extraNote').value.trim();
   const p = preferences;
@@ -513,8 +726,10 @@ async function getRecommendation() {
     if (!res.ok) throw new Error('Worker 回應錯誤：' + res.status);
     const data = await res.json();
     const text = data.text || '無法取得回應，請稍後再試。';
+    lastAiText = text;
     output.classList.remove('loading');
     output.innerHTML = `<div class="search-badge">🔍 已透過 Google Search 取得最新資訊</div><div class="ai-result">${formatAI(text)}</div>`;
+    if (currentMode !== 'shopping') document.getElementById('aiSaveRow').style.display = 'flex';
   } catch(e) {
     output.classList.remove('loading');
     output.innerHTML = `<div class="ai-result" style="color:var(--text3)">連線失敗，請確認 Worker 是否正確部署。<br><small style="color:var(--text3)">${e.message}</small></div>`;
@@ -533,6 +748,7 @@ function formatAI(text) {
     }).join('');
 }
 
+// ── Preferences ──
 function addOccasionTag(btn) { addSelectedOccasion(btn.textContent.replace('+ ', '')); }
 function addSelectedOccasion(label) {
   const el = document.getElementById('selectedOccasions');
@@ -553,201 +769,133 @@ function savePreferences() {
     notes: document.getElementById('prefNotes').value,
     occasions
   };
-  saveAndSync('preferences');
+  lsSet('bar:preferences', preferences);
   const s = document.getElementById('saveStatus');
   s.textContent = '✓ 已儲存'; s.className = 'save-status saved';
   setTimeout(() => { s.textContent = ''; s.className = 'save-status'; }, 3000);
   showToast('偏好已儲存！');
 }
 
+// ── GitHub Gist Sync ──
+function saveGistSettings() {
+  gistToken = document.getElementById('gistToken').value.trim();
+  gistId = document.getElementById('gistId').value.trim();
+  if (!gistToken) { showToast('請輸入 GitHub Token'); return; }
+  localStorage.setItem('bar:gistToken', gistToken);
+  localStorage.setItem('bar:gistId', gistId);
+  showToast('設定已儲存，嘗試同步…');
+  pushToGist();
+}
+
+function openSyncPanel() {
+  // Switch to preferences tab and scroll to gist panel
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('section').forEach(x => x.classList.remove('active'));
+  document.querySelector('[data-tab="preferences"]').classList.add('active');
+  document.getElementById('preferences').classList.add('active');
+  document.querySelector('.gist-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function toggleTokenVisibility() {
+  const inp = document.getElementById('gistToken');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function updateSyncUI(state) {
+  const dot = document.getElementById('syncDot');
+  const dot2 = document.getElementById('syncDot2');
+  const label = document.getElementById('syncLabel');
+  const statusText = document.getElementById('gistStatusText');
+  const states = {
+    none:    { cls: '', text: '未連線',  status: '尚未設定 GitHub Token' },
+    idle:    { cls: '', text: '已連線',  status: '已設定，尚未同步' },
+    syncing: { cls: 'syncing', text: '同步中…', status: '正在同步…' },
+    synced:  { cls: 'synced', text: '已同步', status: '✓ 同步成功 ' + new Date().toLocaleTimeString('zh-TW') },
+    error:   { cls: 'error', text: '同步失敗', status: '✗ 同步失敗，請確認 Token 是否有效' }
+  };
+  const s = states[state] || states.none;
+  [dot, dot2].forEach(d => { d.className = 'sync-dot' + (s.cls ? ' ' + s.cls : ''); });
+  label.textContent = s.text;
+  statusText.textContent = s.status;
+}
+
+function buildGistPayload() {
+  return JSON.stringify({ inventory, recipes, exportedAt: new Date().toISOString() }, null, 2);
+}
+
+async function pushToGist() {
+  if (!gistToken) { showToast('請先設定 GitHub Token'); openSyncPanel(); return; }
+  updateSyncUI('syncing');
+  const content = buildGistPayload();
+  try {
+    let res, data;
+    if (gistId) {
+      res = await fetch(`${GIST_API}/${gistId}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `token ${gistToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: { [GIST_FILENAME]: { content } } })
+      });
+    } else {
+      res = await fetch(GIST_API, {
+        method: 'POST',
+        headers: { 'Authorization': `token ${gistToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: 'My Private Bar Data', public: false, files: { [GIST_FILENAME]: { content } } })
+      });
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    if (!gistId) {
+      gistId = data.id;
+      localStorage.setItem('bar:gistId', gistId);
+      document.getElementById('gistId').value = gistId;
+      showToast('✓ 已建立新 Gist：' + gistId);
+    } else {
+      showToast('✓ 已同步至 Gist');
+    }
+    updateSyncUI('synced');
+  } catch(e) {
+    updateSyncUI('error');
+    showToast('同步失敗：' + e.message);
+  }
+}
+
+async function pullFromGist() {
+  if (!gistToken || !gistId) { showToast('請先在偏好設定中設定 Gist'); openSyncPanel(); return; }
+  updateSyncUI('syncing');
+  try {
+    const res = await fetch(`${GIST_API}/${gistId}`, {
+      headers: { 'Authorization': `token ${gistToken}` }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const fileContent = data.files?.[GIST_FILENAME]?.content;
+    if (!fileContent) throw new Error('找不到資料檔案');
+    const parsed = JSON.parse(fileContent);
+    if (parsed.inventory) { inventory = parsed.inventory; lsSet('bar:inventory', inventory); renderInventory(); updateCount(); }
+    if (parsed.recipes) { recipes = parsed.recipes; lsSet('bar:recipes', recipes); renderRecipes(); }
+    updateSyncUI('synced');
+    showToast('✓ 已從 Gist 拉取最新資料');
+  } catch(e) {
+    updateSyncUI('error');
+    showToast('拉取失敗：' + e.message);
+  }
+}
+
+// Debounce auto-push after changes
+let pushTimer = null;
+function debouncedPush() {
+  if (!gistToken || !gistId) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => pushToGist(), 3000);
+}
+
+// ── Toast ──
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
-/* ============ 雲端同步 (GitHub Gist) ============ */
 
-function saveAndSync(key) {
-  // 先存本地
-  if (key === 'inventory') saveAndSync('inventory');
-  else if (key === 'preferences') lsSet('bar:preferences', preferences);
-  else if (key === 'recipes') saveAndSync('recipes');
-  // 觸發同步(debounce 1.5 秒,避免頻繁請求)
-  if (!gistConfig.token || !gistConfig.gistId) return;
-  clearTimeout(syncDebounceTimer);
-  syncDebounceTimer = setTimeout(() => uploadToGist(true), 1500);
-}
-
-function updateSyncUI() {
-  const dot = document.getElementById('syncDot');
-  const txt = document.getElementById('syncText');
-  const bigDot = document.getElementById('bigSyncDot');
-  const label = document.getElementById('syncStatusLabel');
-  const sub = document.getElementById('syncStatusSub');
-  dot.className = 'sync-dot'; if (bigDot) bigDot.className = 'big-dot';
-  if (!gistConfig.token || !gistConfig.gistId) {
-    txt.textContent = '未設定同步';
-    if (label) { label.textContent = '尚未連接雲端'; sub.textContent = '設定 Token 後即可跨裝置同步'; }
-  } else if (syncState === 'syncing') {
-    dot.classList.add('syncing'); txt.textContent = '同步中...';
-    if (bigDot) bigDot.classList.add('syncing');
-    if (label) { label.textContent = '正在同步...'; sub.textContent = '資料傳輸中'; }
-  } else if (syncState === 'error') {
-    dot.classList.add('error'); txt.textContent = '同步失敗';
-    if (bigDot) bigDot.classList.add('error');
-    if (label) { label.textContent = '同步失敗'; sub.textContent = '請檢查 Token 是否正確'; }
-  } else {
-    dot.classList.add('online'); txt.textContent = '已同步';
-    if (bigDot) bigDot.classList.add('online');
-    if (label) { label.textContent = '已連接雲端'; sub.textContent = 'Gist ID: ' + gistConfig.gistId.substring(0, 12) + '...'; }
-  }
-}
-
-async function setupGist() {
-  const token = document.getElementById('gistToken').value.trim();
-  const gistId = document.getElementById('gistId').value.trim();
-  if (!token) { showToast('請先貼上 Token'); return; }
-  syncState = 'syncing'; updateSyncUI();
-
-  try {
-    if (gistId) {
-      // 連接既有 Gist:先下載
-      gistConfig = { token, gistId };
-      lsSet('bar:gistConfig', gistConfig);
-      await downloadFromGist();
-      showToast('✓ 已連接 Gist,資料已同步下來');
-    } else {
-      // 建立新 Gist
-      const body = {
-        description: 'My Private Bar - Data Sync',
-        public: false,
-        files: { [GIST_FILENAME]: { content: JSON.stringify(buildDataPayload(), null, 2) } }
-      };
-      const res = await fetch('https://api.github.com/gists', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' },
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) throw new Error('建立失敗:' + res.status);
-      const data = await res.json();
-      gistConfig = { token, gistId: data.id };
-      lsSet('bar:gistConfig', gistConfig);
-      document.getElementById('gistId').value = data.id;
-      showToast('✓ 已建立 Gist!複製 ID 到其他裝置即可共用');
-    }
-    syncState = 'online'; updateSyncUI();
-  } catch(e) {
-    syncState = 'error'; updateSyncUI();
-    showToast('❌ ' + e.message);
-  }
-}
-
-function buildDataPayload() {
-  return {
-    inventory, preferences, recipes,
-    lastUpdate: Date.now(),
-    version: 1
-  };
-}
-
-async function uploadToGist(silent = false) {
-  if (!gistConfig.token || !gistConfig.gistId) {
-    if (!silent) showToast('請先設定 Gist'); return;
-  }
-  syncState = 'syncing'; updateSyncUI();
-  try {
-    const body = { files: { [GIST_FILENAME]: { content: JSON.stringify(buildDataPayload(), null, 2) } } };
-    const res = await fetch('https://api.github.com/gists/' + gistConfig.gistId, {
-      method: 'PATCH',
-      headers: { 'Authorization': 'Bearer ' + gistConfig.token, 'Accept': 'application/vnd.github+json' },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) throw new Error('上傳失敗:' + res.status);
-    syncState = 'online'; updateSyncUI();
-    if (!silent) showToast('✓ 已上傳到雲端');
-  } catch(e) {
-    syncState = 'error'; updateSyncUI();
-    if (!silent) showToast('❌ ' + e.message);
-  }
-}
-
-async function downloadFromGist() {
-  if (!gistConfig.token || !gistConfig.gistId) return;
-  syncState = 'syncing'; updateSyncUI();
-  try {
-    const res = await fetch('https://api.github.com/gists/' + gistConfig.gistId, {
-      headers: { 'Authorization': 'Bearer ' + gistConfig.token, 'Accept': 'application/vnd.github+json' }
-    });
-    if (!res.ok) throw new Error('下載失敗:' + res.status);
-    const data = await res.json();
-    const file = data.files[GIST_FILENAME];
-    if (!file) throw new Error('Gist 內找不到資料檔');
-    const payload = JSON.parse(file.content);
-    if (payload.inventory) { inventory = payload.inventory; saveAndSync('inventory'); }
-    if (payload.preferences) { preferences = payload.preferences; lsSet('bar:preferences', preferences); }
-    if (payload.recipes) { recipes = payload.recipes; saveAndSync('recipes'); }
-    applyPreferences(); renderInventory(); renderRecipes(); updateCount();
-    syncState = 'online'; updateSyncUI();
-  } catch(e) {
-    syncState = 'error'; updateSyncUI();
-    throw e;
-  }
-}
-
-async function autoDownload() {
-  try { await downloadFromGist(); showToast('✓ 已從雲端同步最新資料'); }
-  catch(e) { showToast('⚠️ 無法從雲端下載:' + e.message); }
-}
-
-async function manualUpload() { await uploadToGist(false); }
-async function manualDownload() {
-  try { await downloadFromGist(); showToast('✓ 已從雲端下載'); }
-  catch(e) { showToast('❌ ' + e.message); }
-}
-
-function disconnectGist() {
-  if (!confirm('確定中斷雲端連線?本地資料會保留,但不再自動同步。')) return;
-  gistConfig = { token: '', gistId: '' };
-  lsSet('bar:gistConfig', gistConfig);
-  document.getElementById('gistToken').value = '';
-  document.getElementById('gistId').value = '';
-  syncState = 'offline'; updateSyncUI();
-  showToast('已中斷雲端連線');
-}
-
-/* ============ 本地 JSON 備份 ============ */
-
-function exportJSON() {
-  const data = buildDataPayload();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `private-bar-backup-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('✓ 已下載備份檔');
-}
-
-function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!confirm(`將匯入 ${data.inventory?.length || 0} 種材料、${data.recipes?.length || 0} 份酒譜,會覆蓋現有資料。確定?`)) return;
-      if (data.inventory) { inventory = data.inventory; saveAndSync('inventory'); }
-      if (data.preferences) { preferences = data.preferences; lsSet('bar:preferences', preferences); }
-      if (data.recipes) { recipes = data.recipes; saveAndSync('recipes'); }
-      applyPreferences(); renderInventory(); renderRecipes(); updateCount();
-      saveAndSync('inventory');
-      showToast('✓ 匯入完成');
-    } catch(err) { showToast('❌ 檔案格式錯誤'); }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
 init();
 </script>
 </body>
